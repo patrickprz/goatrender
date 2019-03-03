@@ -1,115 +1,68 @@
 package main
 
 import (
-	"math"
+	"fmt"
+	"os"
 )
 
-// Geometry interface
-type Geometry interface {
-	intersect() bool
-}
+func color(ray Ray) Vector3 {
 
-// Vector3 XYZ
-type Vector3 struct {
-	X float64
-	Y float64
-	Z float64
-}
+	sphere := Sphere{Position: Vector3{0, 0, -1}, Radius: 0.5}
 
-// Color RGB
-type Color struct {
-	R uint8
-	G uint8
-	B uint8
-}
+	_, record := sphere.Hit(ray, 0, 1)
 
-// Plane object
-type Plane struct {
-	Position Vector3
-	Normal   Vector3
-}
-
-// Sphere object
-type Sphere struct {
-	Position Vector3
-	Radius   float64
-}
-
-// Ray struct
-type Ray struct {
-	Origin    Vector3
-	Direction Vector3
-}
-
-const (
-	// WIDTH Screen width
-	WIDTH int = 480
-	// HEIGHT  Height
-	HEIGHT int = 240
-	// FOV CONST
-	FOV float32 = 51.52
-)
-
-func normalize(a Vector3) Vector3 {
-	magnitude := math.Sqrt(a.X*a.X + a.Y*a.Y + a.Z*a.Z)
-	return Vector3{a.X / magnitude, a.Y / magnitude, a.Z / magnitude}
-}
-
-func dot(a Vector3, b Vector3) float64 {
-	return a.X*b.X + a.Y*b.Y + a.Z*b.Z
-}
-
-func sub(a Vector3, b Vector3) Vector3 {
-	return Vector3{a.X - b.X, a.Y - b.Y, a.Z - b.Z}
-}
-
-func (plane Plane) intersect(ray Ray) bool {
-	denom := dot(normalize(plane.Normal), normalize(ray.Direction))
-	if denom > 1e-6 {
-		t := dot(sub(normalize(plane.Position), normalize(ray.Origin)), normalize(plane.Normal)) / denom
-		if t >= 0 {
-			return true
-		}
-	}
-	return false
-}
-
-func (sphere Sphere) intersect(ray Ray) bool {
-	// Analytic solution
-	L := sub(sphere.Position, ray.Origin)
-	tca := dot(L, ray.Direction)
-	d2 := dot(L, L) - tca*tca
-	r2 := sphere.Radius * sphere.Radius
-	if d2 > r2 {
-		return false
-	}
-	thc := math.Sqrt(r2 - d2)
-	t0 := tca - thc
-	t1 := tca + thc
-
-	if t0 > t1 {
-		t0, t1 = t1, t0
+	if record.T > 0 {
+		//n := ray.Direction.Sub(sphere.Position)
+		n := ray.Point(record.T).Sub(sphere.Position)
+		return Vector3{n.X + 1, n.Y + 1, n.Z + 1}.MultiplyScalar(0.5)
 	}
 
-	if t0 < 0 {
-		t0 = t1
-		if t0 < 0 {
-			return false
-		}
-	}
+	unitDirection := ray.Direction.Normalize()
+	record.T = 0.5*unitDirection.Y + 1.0
 
-	return false
+	white := Vector3{1.0, 1.0, 1.0}
+	blue := Vector3{0.5, 0.7, 1.0}
+
+	return white.MultiplyScalar(1.0 - record.T).Add(blue.MultiplyScalar(record.T))
 }
 
 func render() {
 
+	nx := 1200
+	ny := 600
+
+	file, _ := os.Create("out.ppm")
+	defer file.Close()
+
+	fmt.Fprintf(file, "P3\n%d %d\n255\n", nx, ny)
+
+	lowerLeft := Vector3{-2.0, -1.0, -1.0}
+	horizontal := Vector3{4.0, 0.0, 0.0}
+	vertical := Vector3{0.0, 2.0, 0.0}
+	origin := Vector3{0.0, 0.0, 0.0}
+
+	for j := ny - 1; j >= 0; j-- {
+		for i := 0; i < nx; i++ {
+
+			u := float64(i) / float64(nx)
+			v := float64(j) / float64(ny)
+
+			position := horizontal.MultiplyScalar(u).Add(vertical.MultiplyScalar(v))
+			direction := lowerLeft.Add(position)
+
+			ray := Ray{origin, direction}
+			c := color(ray)
+
+			ir := int(255.99 * c.X)
+			ig := int(255.99 * c.Y)
+			ib := int(255.99 * c.Z)
+
+			fmt.Fprintf(file, "%d %d %d\n", ir, ig, ib)
+		}
+	}
+
 }
 
 func main() {
-	// Render loop
-	//for y := 0; y < HEIGHT; y++ {
-	//for x := 0; x < WIDTH; x++ {
-
-	//}
-	//}
+	render()
 }
