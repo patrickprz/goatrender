@@ -25,6 +25,11 @@ func (a Vector3) Length() float64 {
 	return math.Sqrt(a.X*a.X + a.Y*a.Y + a.Z*a.Z)
 }
 
+// SquaredLength of a vector3
+func (a Vector3) SquaredLength() float64 {
+	return a.X*a.X + a.Y*a.Y + a.Z*a.Z
+}
+
 // Add two vector3
 func (a Vector3) Add(b Vector3) Vector3 {
 	return Vector3{a.X + b.X, a.Y + b.Y, a.Z + b.Z}
