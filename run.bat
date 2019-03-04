@@ -1,1 +1,1 @@
-go run goat.go vector3.go ray.go sphere.go hitable.go scene.go
+go run goat.go vector3.go ray.go sphere.go hitable.go scene.go camera.go

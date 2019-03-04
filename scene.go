@@ -5,18 +5,19 @@ type Scene struct {
 	Objects []Hitable
 }
 
+// Hit objects
 func (scene Scene) Hit(ray *Ray, tMin float64, tMax float64) (bool, HitRecord) {
-	record := HitRecord{}
 	isHit := false
 	closest := tMax
+	record := HitRecord{}
 
 	for _, object := range scene.Objects {
-		hit, temp := object.Hit(ray, tMin, closest)
+		hit, tempRecord := object.Hit(ray, tMin, closest)
 
 		if hit {
 			isHit = true
-			closest = temp.T
-			record = temp
+			closest = tempRecord.T
+			record = tempRecord
 		}
 	}
 	return isHit, record

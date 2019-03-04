@@ -11,7 +11,7 @@ type Sphere struct {
 }
 
 // Hit sphere test
-func (sphere Sphere) Hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) {
+func (sphere Sphere) Hit(ray *Ray, tMin float64, tMax float64) (bool, HitRecord) {
 	oc := ray.Origin.Sub(sphere.Position)
 	a := ray.Direction.Dot(ray.Direction)
 	b := 2.0 * oc.Dot(ray.Direction)
